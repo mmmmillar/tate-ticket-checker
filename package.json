@@ -1,0 +1,22 @@
+{
+  "name": "tate-ticket-checker",
+  "version": "1.0.0",
+  "description": "Tate ticket checker checks the Tate.org.uk shop to see if there are tickets available for a selected event",
+  "main": "handler.js",
+  "scripts": {
+    "test": "jest",
+    "layers": "./layers.sh"
+  },
+  "author": "Matthew Millar",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "*",
+    "date-fns": "^2.25.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.2",
+    "chrome-aws-lambda": "^10.1.0",
+    "jest": "^27.3.1",
+    "puppeteer": "^10.4.0"
+  }
+}

@@ -1,0 +1,35 @@
+service: tate-ticket-checker
+frameworkVersion: '2'
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  lambdaHashingVersion: 20201221
+  region: eu-west-2
+  environment:
+    EVENT_ID: ${env:EVENT_ID}
+    TICKET_URL: ${env:TICKET_URL}
+    NUM_DAYS: ${env:NUM_DAYS}
+
+package:
+  patterns:
+    - '!./**'
+    - node_modules/**
+    - lib/**
+    - package.json
+    - handler.js
+
+functions:
+  check:
+    handler: handler.check
+    events:
+      - schedule: cron(0/${env:INTERVAL_MINS} 6-23 * * ? *)
+    timeout: 20
+    layers:
+      - { Ref: ChromeLambdaLayer }
+
+layers:
+  chrome:
+    package:
+      artifact: chrome-lambda-layer.zip
