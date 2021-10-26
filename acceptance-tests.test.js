@@ -2,7 +2,9 @@ process.env.TICKET_URL = 'https://tickets?id=##ID##-##DATE##'
 process.env.EVENT_ID = 99
 
 const GetTimeslots = require('./lib/use-cases/get-timeslots')
+const WriteTimeslots = require('./lib/use-cases/write-timeslots')
 const TimeslotGateway = require('./lib/gateways/timeslot-gateway')
+const DynamoGateway = require('./lib/gateways/dynamo-gateway')
 const { pages } = require('./lib/test-data')
 
 describe('acceptance-tests', () => {
@@ -70,5 +72,23 @@ describe('acceptance-tests', () => {
         url: 'https://tickets?id=99-20500102',
       },
     ])
+  })
+
+  test('write the available timeslots to the db produces no errors', async () => {
+    const sendBatchWriteRequest = jest.fn()
+    const dynamoGateway = DynamoGateway({ sendBatchWriteRequest })
+    const usecase = WriteTimeslots({ dynamoGateway })
+
+    const write = usecase.execute({
+      timeslots: [
+        {
+          date: '20500101',
+          timeslots: [{ time: '3:30pm' }],
+          url: 'https://tickets?id=99-20500101',
+        },
+      ],
+    })
+
+    await expect(write).resolves.toBeUndefined()
   })
 })

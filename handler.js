@@ -1,8 +1,10 @@
 'use strict'
 const chromium = require('chrome-aws-lambda')
-const { getPage } = require('./lib/utils')
+const { getPage, sendBatchWriteRequest } = require('./lib/utils')
 const TimeslotGateway = require('./lib/gateways/timeslot-gateway')
+const DynamoGateway = require('./lib/gateways/dynamo-gateway')
 const GetTimeslots = require('./lib/use-cases/get-timeslots')
+const WriteTimeslots = require('./lib/use-cases/write-timeslots')
 
 module.exports.check = async (_event) => {
   const browser = await chromium.puppeteer.launch({
@@ -14,11 +16,14 @@ module.exports.check = async (_event) => {
   })
 
   const timeslotGateway = TimeslotGateway({ browser, getPage })
-  const usecase = GetTimeslots({ timeslotGateway })
-  const result = await usecase.execute({ days: process.env.NUM_DAYS })
+  const dynamoGateway = DynamoGateway({ sendBatchWriteRequest })
+  const get = GetTimeslots({ timeslotGateway })
+  const write = WriteTimeslots({ dynamoGateway })
+
+  const timeslots = await get.execute({ days: process.env.NUM_DAYS })
+  await write.execute({ timeslots })
 
   browser.close()
 
-  console.log(JSON.stringify(result))
-  return result
+  console.log('Available timeslots: %O', JSON.stringify(timeslots))
 }

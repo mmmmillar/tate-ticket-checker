@@ -11,6 +11,12 @@ provider:
     EVENT_ID: ${env:EVENT_ID}
     TICKET_URL: ${env:TICKET_URL}
     NUM_DAYS: ${env:NUM_DAYS}
+    DYNAMO_TABLE_NAME: ${env:DYNAMO_TABLE_NAME}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:BatchWriteItem
+      Resource: !GetAtt AvailabilityTable.Arn
 
 package:
   patterns:
@@ -33,3 +39,24 @@ layers:
   chrome:
     package:
       artifact: chrome-lambda-layer.zip
+
+resources:
+  Resources:
+    AvailabilityTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${env:DYNAMO_TABLE_NAME}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: pk
+            AttributeType: S
+          - AttributeName: sk
+            AttributeType: S
+        KeySchema:
+          - AttributeName: pk
+            KeyType: HASH
+          - AttributeName: sk
+            KeyType: RANGE
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true

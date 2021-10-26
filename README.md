@@ -19,19 +19,7 @@ You will need to create a copy of `.env.sample` in the root directory and rename
 - `EVENT_ID` - the event ID (find this by going to the exhibition in the shop and inspecting the url)
 - `NUM_DAYS` - the number of days to check (1 will check only today, 2 will check today and tomorrow, etc)
 - `INTERVAL_MINS` - the check interval (eg 5 will check every 5 minutes)
-
-## Run Locally
-
-```bash
-npm install
-sls invoke local -f check
-```
-
-## Run Tests
-
-```bash
-jest
-```
+- `DYNAMO_TABLE_NAME` - the name of the Dynamodb table
 
 ## Deploy to AWS (requires account)
 
@@ -47,7 +35,12 @@ You can verify the deployment was successful by running
 sls invoke -f check
 ```
 
+## Run Tests
+
+```bash
+jest
+```
+
 ## Future Enhancements
 
-- Add a db to track changes in availability (for notification purposes)
 - Send an email when tickets become available
