@@ -11,6 +11,7 @@ provider:
     EVENT_ID: ${env:EVENT_ID}
     TICKET_URL: ${env:TICKET_URL}
     NUM_DAYS: ${env:NUM_DAYS}
+    INTERVAL_MINS: ${env:INTERVAL_MINS}
     DYNAMO_TABLE_NAME: ${env:DYNAMO_TABLE_NAME}
   iamRoleStatements:
     - Effect: Allow

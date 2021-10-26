@@ -1,0 +1,38 @@
+name: cd
+
+on:
+  workflow_run:
+    workflows: ['ci']
+    types:
+      - completed
+
+jobs:
+  deploy:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm i
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Build layers
+        run: npm run layers
+      - name: Install serverless
+        run: npm i -g serverless
+      - name: Deploy
+        env:
+          TICKET_URL: ${{ secrets.TICKET_URL }}
+          EVENT_ID: ${{ secrets.EVENT_ID }}
+          NUM_DAYS: ${{ secrets.NUM_DAYS }}
+          INTERVAL_MINS: ${{ secrets.INTERVAL_MINS }}
+          DYNAMO_TABLE_NAME: ${{ secrets.DYNAMO_TABLE_NAME }}
+        run: sls deploy
