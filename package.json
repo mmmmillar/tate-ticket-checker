@@ -11,9 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.38.0",
+    "@aws-sdk/client-ses": "^3.38.0",
     "@aws-sdk/util-dynamodb": "^3.38.0",
     "cheerio": "*",
-    "date-fns": "^2.25.0"
+    "date-fns": "^2.25.0",
+    "handlebars": "^4.7.7"
   },
   "devDependencies": {
     "@types/jest": "^27.0.2",

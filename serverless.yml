@@ -13,11 +13,16 @@ provider:
     NUM_DAYS: ${env:NUM_DAYS}
     INTERVAL_MINS: ${env:INTERVAL_MINS}
     DYNAMO_TABLE_NAME: ${env:DYNAMO_TABLE_NAME}
+    EMAIL_ADDRESS: ${env:EMAIL_ADDRESS}
   iamRoleStatements:
     - Effect: Allow
       Action:
         - dynamodb:BatchWriteItem
       Resource: !GetAtt AvailabilityTable.Arn
+    - Effect: Allow
+      Action:
+        - ses:SendEmail
+      Resource: '*'
 
 package:
   patterns:
@@ -35,6 +40,12 @@ functions:
     timeout: 20
     layers:
       - { Ref: ChromeLambdaLayer }
+  update:
+    handler: handler.update
+    events:
+      - stream:
+          type: dynamodb
+          arn: !GetAtt AvailabilityTable.StreamArn
 
 layers:
   chrome:
@@ -61,3 +72,5 @@ resources:
         TimeToLiveSpecification:
           AttributeName: ttl
           Enabled: true
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES

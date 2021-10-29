@@ -3,8 +3,10 @@ process.env.EVENT_ID = 99
 
 const GetTimeslots = require('./lib/use-cases/get-timeslots')
 const WriteTimeslots = require('./lib/use-cases/write-timeslots')
+const SendEmail = require('./lib/use-cases/send-email')
 const TimeslotGateway = require('./lib/gateways/timeslot-gateway')
 const DynamoGateway = require('./lib/gateways/dynamo-gateway')
+const SesGateway = require('./lib/gateways/ses-gateway')
 const { pages } = require('./lib/test-data')
 
 describe('acceptance-tests', () => {
@@ -26,15 +28,6 @@ describe('acceptance-tests', () => {
 
     return TimeslotGateway({ browser: {}, getPage })
   }
-
-  test('get zero timeslots for today when none available', async () => {
-    const timeslotGateway = createTimeslotGateway([pages.no_timeslots])
-    const usecase = GetTimeslots({ timeslotGateway })
-
-    const result = await usecase.execute({ days: 1 })
-
-    expect(result).toEqual([])
-  })
 
   test('get the available timeslots for today', async () => {
     const timeslotGateway = createTimeslotGateway([pages.timeslots_1])
@@ -74,7 +67,7 @@ describe('acceptance-tests', () => {
     ])
   })
 
-  test('write the available timeslots to the db produces no errors', async () => {
+  test('writing the available timeslots to the db produces no errors', async () => {
     const sendBatchWriteRequest = jest.fn()
     const dynamoGateway = DynamoGateway({ sendBatchWriteRequest })
     const usecase = WriteTimeslots({ dynamoGateway })
@@ -90,5 +83,49 @@ describe('acceptance-tests', () => {
     })
 
     await expect(write).resolves.toBeUndefined()
+  })
+
+  test('send email when tickets have become available', async () => {
+    const sendEmail = jest.fn()
+    const sesGateway = SesGateway({ sendEmail })
+    jest.spyOn(sesGateway, 'send')
+    const usecase = SendEmail({ sesGateway })
+
+    const send = usecase.execute({
+      update: {
+        new: {
+          date: '20500101',
+          timeslots: [{ time: '3:15pm' }, { time: '3:30pm' }],
+          url: 'https://tickets?id=99-20500101',
+        },
+      },
+    })
+
+    expect(sesGateway.send).toHaveBeenCalled()
+    await expect(send).resolves.toBeUndefined()
+  })
+
+  test('do not send email if tickets were already available', async () => {
+    const sendEmail = jest.fn()
+    const sesGateway = SesGateway({ sendEmail })
+    jest.spyOn(sesGateway, 'send')
+    const usecase = SendEmail({ sesGateway })
+
+    await usecase.execute({
+      update: {
+        old: {
+          date: '20500101',
+          timeslots: [{ time: '3:15pm' }],
+          url: 'https://tickets?id=99-20500101',
+        },
+        new: {
+          date: '20500101',
+          timeslots: [{ time: '3:15pm' }, { time: '3:30pm' }],
+          url: 'https://tickets?id=99-20500101',
+        },
+      },
+    })
+
+    expect(sesGateway.send).not.toHaveBeenCalled()
   })
 })

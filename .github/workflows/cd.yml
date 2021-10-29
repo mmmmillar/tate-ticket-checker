@@ -35,4 +35,5 @@ jobs:
           NUM_DAYS: ${{ secrets.NUM_DAYS }}
           INTERVAL_MINS: ${{ secrets.INTERVAL_MINS }}
           DYNAMO_TABLE_NAME: ${{ secrets.DYNAMO_TABLE_NAME }}
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
         run: sls deploy
