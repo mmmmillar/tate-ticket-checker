@@ -1,11 +1,10 @@
-service: tate-ticket-checker
-frameworkVersion: '2'
+service: tate-ticket-checker-${env:EVENT_ID}
+frameworkVersion: '3'
 useDotenv: true
 
 provider:
   name: aws
   runtime: nodejs14.x
-  lambdaHashingVersion: 20201221
   region: eu-west-2
   environment:
     EVENT_ID: ${env:EVENT_ID}
@@ -14,15 +13,17 @@ provider:
     INTERVAL_MINS: ${env:INTERVAL_MINS}
     DYNAMO_TABLE_NAME: ${env:DYNAMO_TABLE_NAME}
     EMAIL_ADDRESS: ${env:EMAIL_ADDRESS}
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:BatchWriteItem
-      Resource: !GetAtt AvailabilityTable.Arn
-    - Effect: Allow
-      Action:
-        - ses:SendEmail
-      Resource: '*'
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:BatchWriteItem
+          Resource: !GetAtt AvailabilityTable.Arn
+        - Effect: Allow
+          Action:
+            - ses:SendEmail
+          Resource: '*'
 
 package:
   patterns:
